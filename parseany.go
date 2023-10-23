@@ -187,6 +187,17 @@ func ParseLocal(datestr string, opts ...ParserOption) (time.Time, error) {
 	return p.parse()
 }
 
+// ParseTimeAndLayoutLocal  Given an unknown date format, detect the layout, and pare it.
+func ParseTimeAndLayoutLocal(datestr string, opts ...ParserOption) (time.Time, string, error) {
+	p, err := parseTime(datestr, time.Local, opts...)
+	if err != nil {
+		return time.Time{}, "", err
+	}
+
+	t, err := p.parse()
+	return t, string(p.format), err
+}
+
 // MustParse  parse a date, and panic if it can't be parsed.  Used for testing.
 // Not recommended for most use-cases.
 func MustParse(datestr string, opts ...ParserOption) time.Time {
@@ -345,23 +356,11 @@ iterRunes:
 				}
 
 			case ':':
-				// 03/31/2005
-				// 2014/02/24
+				// number & : time only format 23:59:34
 				p.stateDate = dateDigitColon
-				if i == 4 {
-					p.yearlen = i
-					p.moi = i + 1
-					p.setYear()
-				} else {
-					p.ambiguousMD = true
-					if p.preferMonthFirst {
-						if p.molen == 0 {
-							p.molen = i
-							p.setMonth()
-							p.dayi = i + 1
-						}
-					}
-				}
+				p.stateTime = timeStart
+				i = 0
+				break  iterRunes
 
 			case '.':
 				// 3.31.2014
@@ -1114,7 +1113,7 @@ iterRunes:
 	p.coalesceDate(i)
 	if p.stateTime == timeStart {
 		// increment first one, since the i++ occurs at end of loop
-		if i < len(p.datestr) {
+		if i != 0 && i < len(p.datestr) {
 			i++
 		}
 		// ensure we skip any whitespace prefix
@@ -1168,7 +1167,7 @@ iterRunes:
 				//       00:00:00.000 +0000 UTC
 				//     timePeriodWsAlpha
 				//       06:20:00.000 UTC
-				if p.houri == 0 {
+				if p.houri < 0 {
 					p.houri = i
 				}
 				switch r {
@@ -1216,7 +1215,7 @@ iterRunes:
 							//                      x
 							// September 17, 2012 at 5:00pm UTC-05
 							i++         // skip '
-							p.houri = 0 // reset hour
+							p.houri = -1 // reset hour
 						}
 					} else {
 						switch {
@@ -1256,7 +1255,7 @@ iterRunes:
 						p.msi = i + 1
 
 						// gross, gross, gross.   manipulating the datestr is horrible.
-						// https://github.com/araddon/dateparse/issues/117
+						// https://github.com/chirlchen/dateparse/issues/117
 						// Could not get the parsing to work using golang time.Parse() without
 						// replacing that colon with period.
 						p.set(i, ".")
@@ -2016,6 +2015,7 @@ func newParser(dateStr string, loc *time.Location, opts ...ParserOption) *parser
 		loc:                        loc,
 		preferMonthFirst:           true,
 		retryAmbiguousDateWithSwap: false,
+		houri: -1,
 	}
 	p.format = []byte(dateStr)
 
@@ -2094,7 +2094,7 @@ func (p *parser) coalesceTime(end int) {
 	// 3:04:05
 	// 3:4:5
 	// 15:04:05.00
-	if p.houri > 0 {
+	if p.houri >= 0 {
 		if p.hourlen == 2 {
 			p.set(p.houri, "15")
 		} else if p.hourlen == 1 {

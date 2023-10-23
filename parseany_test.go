@@ -21,6 +21,12 @@ type dateTest struct {
 }
 
 var testInputs = []dateTest{
+	{in: "03:10:51", out: "0000-01-01 03:10:51 +0000 UTC"},
+	{in: "3:10:51", out: "0000-01-01 03:10:51 +0000 UTC"},
+	{in: "23:10:51", out: "0000-01-01 23:10:51 +0000 UTC"},
+	{in: "22:05", out: "0000-01-01 22:05:00 +0000 UTC"},
+	{in: "10:11:59.3186369", out: "0000-01-01 10:11:59.3186369 +0000 UTC"},
+
 	{in: "oct 7, 1970", out: "1970-10-07 00:00:00 +0000 UTC"},
 	{in: "oct 7, '70", out: "1970-10-07 00:00:00 +0000 UTC"},
 	{in: "Oct 7, '70", out: "1970-10-07 00:00:00 +0000 UTC"},
@@ -132,7 +138,7 @@ var testInputs = []dateTest{
 	{in: "Fri, 3-Jul-15 08:08:08 MST", out: "2015-07-03 08:08:08 +0000 UTC"},
 	{in: "Fri, 03-Jul-15 8:08:08 MST", out: "2015-07-03 08:08:08 +0000 UTC"},
 	{in: "Fri, 03-Jul-15 8:8:8 MST", out: "2015-07-03 08:08:08 +0000 UTC"},
-	// day, dd-Mon-yy hh:mm:zz TZ (text) https://github.com/araddon/dateparse/issues/116
+	// day, dd-Mon-yy hh:mm:zz TZ (text) https://github.com/chirlchen/dateparse/issues/116
 	{in: "Sun, 3 Jan 2021 00:12:23 +0800 (GMT+08:00)", out: "2021-01-02 16:12:23 +0000 UTC"},
 	// RFC850    = "Monday, 02-Jan-06 15:04:05 MST"
 	{in: "Wednesday, 07-May-09 08:00:43 MST", out: "2009-05-07 08:00:43 +0000 UTC"},
@@ -187,16 +193,7 @@ var testInputs = []dateTest{
 	{in: "04/02/2014 04:08:09.123", out: "2014-04-02 04:08:09.123 +0000 UTC"},
 	{in: "04/02/2014 04:08:09.12312", out: "2014-04-02 04:08:09.12312 +0000 UTC"},
 	{in: "04/02/2014 04:08:09.123123", out: "2014-04-02 04:08:09.123123 +0000 UTC"},
-	//  mm:dd:yy hh:mm:ss
-	{in: "04:02:2014 04:08:09", out: "2014-04-02 04:08:09 +0000 UTC"},
-	{in: "4:2:2014 04:08:09", out: "2014-04-02 04:08:09 +0000 UTC"},
-	{in: "04:02:2014 4:08:09", out: "2014-04-02 04:08:09 +0000 UTC"},
-	{in: "04:02:2014 4:8:9", out: "2014-04-02 04:08:09 +0000 UTC"},
-	{in: "04:02:2014 04:08", out: "2014-04-02 04:08:00 +0000 UTC"},
-	{in: "04:02:2014 4:8", out: "2014-04-02 04:08:00 +0000 UTC"},
-	{in: "04:02:2014 04:08:09.123", out: "2014-04-02 04:08:09.123 +0000 UTC"},
-	{in: "04:02:2014 04:08:09.12312", out: "2014-04-02 04:08:09.12312 +0000 UTC"},
-	{in: "04:02:2014 04:08:09.123123", out: "2014-04-02 04:08:09.123123 +0000 UTC"},
+
 	//  mm/dd/yy hh:mm:ss AM
 	{in: "04/02/2014 04:08:09 AM", out: "2014-04-02 04:08:09 +0000 UTC"},
 	{in: "04/02/2014 04:08:09 PM", out: "2014-04-02 16:08:09 +0000 UTC"},
@@ -225,7 +222,7 @@ var testInputs = []dateTest{
 	{in: "2014/4/2 04:08:09 AM", out: "2014-04-02 04:08:09 +0000 UTC"},
 	{in: "2014/04/02 04:08:09.123 AM", out: "2014-04-02 04:08:09.123 +0000 UTC"},
 	{in: "2014/04/02 04:08:09.123 PM", out: "2014-04-02 16:08:09.123 +0000 UTC"},
-	// dd/mon/yyyy:hh:mm:ss tz  nginx-log?    https://github.com/araddon/dateparse/issues/118
+	// dd/mon/yyyy:hh:mm:ss tz  nginx-log?    https://github.com/chirlchen/dateparse/issues/118
 	// 112.195.209.90 - - [20/Feb/2018:12:12:14 +0800] "GET / HTTP/1.1" 200 190 "-" "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Mobile Safari/537.36" "-"
 	{in: "06/May/2008:08:11:17 -0700", out: "2008-05-06 15:11:17 +0000 UTC"},
 	{in: "30/May/2008:08:11:17 -0700", out: "2008-05-30 15:11:17 +0000 UTC"},
@@ -334,10 +331,6 @@ var testInputs = []dateTest{
 	//   yyyy-mm-dd hh:mm:ss+00:00
 	{in: "2012-08-03 18:31:59+00:00", out: "2012-08-03 18:31:59 +0000 UTC"},
 	{in: "2017-07-19 03:21:51+00:00", out: "2017-07-19 03:21:51 +0000 UTC"},
-	//   yyyy:mm:dd hh:mm:ss+00:00
-	{in: "2012:08:03 18:31:59+00:00", out: "2012-08-03 18:31:59 +0000 UTC"},
-	//   dd:mm:yyyy hh:mm:ss+00:00
-	{in: "08:03:2012 18:31:59+00:00", out: "2012-08-03 18:31:59 +0000 UTC"},
 	//   yyyy-mm-dd hh:mm:ss.000+00:00 PST
 	{in: "2012-08-03 18:31:59.000+00:00 PST", out: "2012-08-03 18:31:59 +0000 UTC", loc: "America/Los_Angeles"},
 	//   yyyy-mm-dd hh:mm:ss +00:00 TZ
@@ -383,7 +376,7 @@ var testInputs = []dateTest{
 	{in: "2016-06-21T19:55+0100", out: "2016-06-21 18:55:00 +0000 UTC"},
 	{in: "2016-06-21T19:55+0130", out: "2016-06-21 18:25:00 +0000 UTC"},
 	//   yyyy-mm-ddThh:mm:ss:000+0000    - weird format with additional colon in front of milliseconds
-	{in: "2012-08-17T18:31:59:257+0100", out: "2012-08-17 17:31:59.257 +0000 UTC"}, // https://github.com/araddon/dateparse/issues/117
+	{in: "2012-08-17T18:31:59:257+0100", out: "2012-08-17 17:31:59.257 +0000 UTC"}, // https://github.com/chirlchen/dateparse/issues/117
 
 	//   yyyy-mm-ddThh:mm:ssZ
 	{in: "2009-08-12T22:15Z", out: "2009-08-12 22:15:00 +0000 UTC"},
@@ -406,7 +399,7 @@ var testInputs = []dateTest{
 	{in: "2014", out: "2014-01-01 00:00:00 +0000 UTC"},
 	{in: "20140601", out: "2014-06-01 00:00:00 +0000 UTC"},
 	{in: "20140722105203", out: "2014-07-22 10:52:03 +0000 UTC"},
-	// yymmdd hh:mm:yy  mysql log  https://github.com/araddon/dateparse/issues/119
+	// yymmdd hh:mm:yy  mysql log  https://github.com/chirlchen/dateparse/issues/119
 	// 080313 05:21:55 mysqld started
 	// 080313 5:21:55 InnoDB: Started; log sequence number 0 43655
 	{in: "171113 14:14:20", out: "2017-11-13 14:14:20 +0000 UTC"},
