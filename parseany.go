@@ -244,7 +244,7 @@ func ParseStrict(datestr string, opts ...ParserOption) (time.Time, error) {
 }
 
 func parseTime(datestr string, loc *time.Location, opts ...ParserOption) (p *parser, err error) {
-
+	datestr = strings.Trim(datestr,` "`)
 	p = newParser(datestr, loc, opts...)
 	if p.retryAmbiguousDateWithSwap {
 		// month out of range signifies that a day/month swap is the correct solution to an ambiguous date
