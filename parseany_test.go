@@ -418,7 +418,7 @@ func TestParse(t *testing.T) {
 	time.Local = time.UTC
 
 	zeroTime := time.Time{}.Unix()
-	ts, err := ParseAny("INVALID")
+	ts, err := ParseAny("INVALID DATE")
 	assert.Equal(t, zeroTime, ts.Unix())
 	assert.NotEqual(t, nil, err)
 
